@@ -40,20 +40,19 @@ jobs:
             cloudpickle
 
       # -------------------------------------------------------
-      # 4. Run MLflow Project
+      # 4. Run Modelling.py langsung
       # -------------------------------------------------------
-      - name: Run MLflow Project
+      - name: Run Training
         env:
-          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_URI: https://dagshub.com/evanursilviani2/Modelling_SML_EvaNurSilviani.mlflow
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           cd MLProject
-          mlflow run . \
-            --env-manager=local \
-            -P n_estimators=100 \
-            -P max_depth=5 \
-            -P min_samples_split=2
+          python Modelling.py \
+            --n_estimators 100 \
+            --max_depth 5 \
+            --min_samples_split 2
 
       # -------------------------------------------------------
       # 5. Simpan artefak ke GitHub (upload)

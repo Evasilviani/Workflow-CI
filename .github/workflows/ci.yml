@@ -57,7 +57,7 @@ jobs:
             --min_samples_split 2
 
       # -------------------------------------------------------
-      # 5. Simpan artefak ke GitHub (upload)
+      # 5. Upload artefak ke GitHub
       # -------------------------------------------------------
       - name: Upload Artifacts to GitHub
         uses: actions/upload-artifact@v4
@@ -89,14 +89,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # -------------------------------------------------------
-      # 8. Build & Push Docker Image via mlflow build-docker
+      # 8. Build Docker Image manual
       # -------------------------------------------------------
-      - name: Build Docker Image with MLflow
+      - name: Build Docker Image
         run: |
-          mlflow models build-docker \
-            --name ${{ secrets.DOCKER_USERNAME }}/heart-disease-model \
-            --env-manager=local
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/heart-disease-model:latest ./MLProject
 
+      # -------------------------------------------------------
+      # 9. Push Docker Image ke Docker Hub
+      # -------------------------------------------------------
       - name: Push Docker Image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/heart-disease-model:latest

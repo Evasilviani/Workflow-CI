@@ -3,7 +3,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 COPY conda.yaml .
-COPY modelling.py .
+COPY Modelling.py .
 COPY heart_preprocessing.csv .
 
 RUN pip install --no-cache-dir \

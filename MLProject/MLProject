@@ -15,7 +15,7 @@ entry_points:
         type: int
         default: 2
     command: >
-      python modelling.py
+      python Modelling.py
         --n_estimators {n_estimators}
         --max_depth {max_depth}
         --min_samples_split {min_samples_split}

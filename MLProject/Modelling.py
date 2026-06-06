@@ -7,7 +7,6 @@ import json
 import argparse
 import warnings
 
-import dagshub
 import mlflow
 import mlflow.sklearn
 
@@ -34,20 +33,18 @@ warnings.filterwarnings("ignore")
 # =========================================================
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--n_estimators",     type=int, default=100)
-parser.add_argument("--max_depth",        type=int, default=5)
-parser.add_argument("--min_samples_split",type=int, default=2)
+parser.add_argument("--n_estimators",      type=int, default=100)
+parser.add_argument("--max_depth",         type=int, default=5)
+parser.add_argument("--min_samples_split", type=int, default=2)
 args = parser.parse_args()
 
 
 # =========================================================
-# SET MLFLOW TRACKING (DagsHub)
+# SET MLFLOW TRACKING (DagsHub via env variable)
 # =========================================================
 
-dagshub.init(
-    repo_owner="evanursilviani2",
-    repo_name="Modelling_SML_EvaNurSilviani",
-    mlflow=True
+mlflow.set_tracking_uri(
+    "https://dagshub.com/evanursilviani2/Modelling_SML_EvaNurSilviani.mlflow"
 )
 
 mlflow.set_experiment("Heart Disease CI")

@@ -43,9 +43,13 @@ args = parser.parse_args()
 # SET MLFLOW TRACKING (DagsHub via env variable)
 # =========================================================
 
-mlflow.set_tracking_uri(
-    "https://dagshub.com/evanursilviani2/Modelling_SML_EvaNurSilviani.mlflow"
-)
+MLFLOW_TRACKING_URI = "https://dagshub.com/evanursilviani2/Modelling_SML_EvaNurSilviani.mlflow"
+
+os.environ["MLFLOW_TRACKING_URI"]      = MLFLOW_TRACKING_URI
+os.environ["MLFLOW_TRACKING_USERNAME"] = os.environ.get("MLFLOW_TRACKING_USERNAME", "")
+os.environ["MLFLOW_TRACKING_PASSWORD"] = os.environ.get("MLFLOW_TRACKING_PASSWORD", "")
+
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
 mlflow.set_experiment("Heart Disease CI")
 

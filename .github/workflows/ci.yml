@@ -95,13 +95,15 @@ jobs:
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          docker build -t ${DOCKER_USER}/heart-disease-model:latest -f MLProject/Dockerfile MLProject
+          echo "Docker user: ${DOCKER_USER}"
+          echo "Image name: ${DOCKER_USER}/heart-disease-model:latest"
+          docker build \
+            --tag "${DOCKER_USER}/heart-disease-model:latest" \
+            --file "MLProject/Dockerfile" \
+            "MLProject"
 
-      # -------------------------------------------------------
-      # 9. Push Docker Image ke Docker Hub
-      # -------------------------------------------------------
       - name: Push Docker Image to Docker Hub
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          docker push ${DOCKER_USER}/heart-disease-model:latest
+          docker push "${DOCKER_USER}/heart-disease-model:latest"

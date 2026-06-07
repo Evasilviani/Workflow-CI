@@ -101,116 +101,109 @@ grid_search = GridSearchCV(
     n_jobs=-1
 )
 
+# =========================================================
+# TRAIN
+# =========================================================
+
+grid_search.fit(X_train, y_train)
+best_model = grid_search.best_estimator_
 
 # =========================================================
-# START MLFLOW RUN
+# PREDICTION
 # =========================================================
 
-with mlflow.start_run(run_name="RandomForest_CI"):
+y_pred = best_model.predict(X_test)
 
-    # =====================================================
-    # TRAIN
-    # =====================================================
+# =========================================================
+# METRICS
+# =========================================================
 
-    grid_search.fit(X_train, y_train)
-    best_model = grid_search.best_estimator_
+accuracy  = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall    = recall_score(y_test, y_pred)
+f1        = f1_score(y_test, y_pred)
 
-    # =====================================================
-    # PREDICTION
-    # =====================================================
+# =========================================================
+# MANUAL LOGGING — PARAMS
+# =========================================================
 
-    y_pred = best_model.predict(X_test)
+mlflow.log_param("best_n_estimators",
+                 grid_search.best_params_["n_estimators"])
+mlflow.log_param("best_max_depth",
+                 grid_search.best_params_["max_depth"])
+mlflow.log_param("best_min_samples_split",
+                 grid_search.best_params_["min_samples_split"])
 
-    # =====================================================
-    # METRICS
-    # =====================================================
+# =========================================================
+# MANUAL LOGGING — METRICS
+# =========================================================
 
-    accuracy  = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall    = recall_score(y_test, y_pred)
-    f1        = f1_score(y_test, y_pred)
+mlflow.log_metric("accuracy",  accuracy)
+mlflow.log_metric("precision", precision)
+mlflow.log_metric("recall",    recall)
+mlflow.log_metric("f1_score",  f1)
 
-    # =====================================================
-    # MANUAL LOGGING — PARAMS
-    # =====================================================
+# =========================================================
+# ARTIFACTS
+# =========================================================
 
-    mlflow.log_param("best_n_estimators",
-                     grid_search.best_params_["n_estimators"])
-    mlflow.log_param("best_max_depth",
-                     grid_search.best_params_["max_depth"])
-    mlflow.log_param("best_min_samples_split",
-                     grid_search.best_params_["min_samples_split"])
+os.makedirs("artifacts", exist_ok=True)
 
-    # =====================================================
-    # MANUAL LOGGING — METRICS
-    # =====================================================
+# 1. metric_info.json
+metric_info = {
+    "accuracy":  accuracy,
+    "precision": precision,
+    "recall":    recall,
+    "f1_score":  f1
+}
+with open("artifacts/metric_info.json", "w") as f:
+    json.dump(metric_info, f, indent=4)
 
-    mlflow.log_metric("accuracy",  accuracy)
-    mlflow.log_metric("precision", precision)
-    mlflow.log_metric("recall",    recall)
-    mlflow.log_metric("f1_score",  f1)
+# 2. classification report HTML
+report = classification_report(y_test, y_pred)
+html_content = f"""
+<html>
+<head><title>Classification Report</title></head>
+<body>
+<h1>Classification Report</h1>
+<pre>{report}</pre>
+</body>
+</html>
+"""
+with open("artifacts/estimator.html", "w") as f:
+    f.write(html_content)
 
-    # =====================================================
-    # ARTIFACTS
-    # =====================================================
+# 3. confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+plt.savefig("artifacts/training_confusion_matrix.png")
+plt.close()
 
-    os.makedirs("artifacts", exist_ok=True)
+# log semua artifact
+mlflow.log_artifact("artifacts/metric_info.json")
+mlflow.log_artifact("artifacts/estimator.html")
+mlflow.log_artifact("artifacts/training_confusion_matrix.png")
 
-    # 1. metric_info.json
-    metric_info = {
-        "accuracy":  accuracy,
-        "precision": precision,
-        "recall":    recall,
-        "f1_score":  f1
-    }
-    with open("artifacts/metric_info.json", "w") as f:
-        json.dump(metric_info, f, indent=4)
+# =========================================================
+# LOG MODEL
+# =========================================================
 
-    # 2. classification report HTML
-    report = classification_report(y_test, y_pred)
-    html_content = f"""
-    <html>
-    <head><title>Classification Report</title></head>
-    <body>
-    <h1>Classification Report</h1>
-    <pre>{report}</pre>
-    </body>
-    </html>
-    """
-    with open("artifacts/estimator.html", "w") as f:
-        f.write(html_content)
+input_example = X_train.iloc[:5]
 
-    # 3. confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    disp.plot()
-    plt.savefig("artifacts/training_confusion_matrix.png")
-    plt.close()
+mlflow.sklearn.log_model(
+    sk_model=best_model,
+    artifact_path="model",
+    input_example=input_example
+)
 
-    # log semua artifact
-    mlflow.log_artifact("artifacts/metric_info.json")
-    mlflow.log_artifact("artifacts/estimator.html")
-    mlflow.log_artifact("artifacts/training_confusion_matrix.png")
+# =========================================================
+# OUTPUT
+# =========================================================
 
-    # =====================================================
-    # LOG MODEL
-    # =====================================================
-
-    input_example = X_train.iloc[:5]
-
-    mlflow.sklearn.log_model(
-        sk_model=best_model,
-        artifact_path="model",
-        input_example=input_example
-    )
-
-    # =====================================================
-    # OUTPUT
-    # =====================================================
-
-    print("Training selesai!")
-    print("Best Parameters:", grid_search.best_params_)
-    print(f"Accuracy  : {accuracy:.4f}")
-    print(f"Precision : {precision:.4f}")
-    print(f"Recall    : {recall:.4f}")
-    print(f"F1 Score  : {f1:.4f}")
+print("Training selesai!")
+print("Best Parameters:", grid_search.best_params_)
+print(f"Accuracy  : {accuracy:.4f}")
+print(f"Precision : {precision:.4f}")
+print(f"Recall    : {recall:.4f}")
+print(f"F1 Score  : {f1:.4f}")
